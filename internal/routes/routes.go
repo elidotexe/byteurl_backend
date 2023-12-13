@@ -6,14 +6,15 @@ import (
 	"github.com/elidotexe/backend_byteurl/internal/auth"
 	"github.com/elidotexe/backend_byteurl/internal/config"
 	"github.com/elidotexe/backend_byteurl/internal/handlers"
+	"github.com/elidotexe/backend_byteurl/internal/middlewares"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-func SetupRoutes(app *config.AppConfig) http.Handler {
+func SetupRoutes(app *config.AppConfig, authInstance *auth.Auth) http.Handler {
 	mux := chi.NewRouter()
 
-	authMiddleware := auth.NewAuthMiddleware(app)
+	authMiddleware := middlewares.NewAuthMiddleware(app, authInstance)
 	mux.Use(authMiddleware.EnableCORS)
 	mux.Use(middleware.Recoverer)
 

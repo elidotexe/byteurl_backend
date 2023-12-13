@@ -17,7 +17,6 @@ type AppConfig struct {
 	JWT_SECRET    string `mapstructure:"JWT_SECRET"`
 	JWT_ISSUER    string `mapstructure:"JWT_ISSUER"`
 	JWT_AUDIENCE  string `mapstructure:"JWT_AUDIENCE"`
-	auth          Auth
 }
 
 func LoadConfig() (config *AppConfig, err error) {

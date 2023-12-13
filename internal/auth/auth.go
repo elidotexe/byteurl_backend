@@ -58,25 +58,9 @@ func (j *Auth) GenerateTokenPair(user *JWTUser) (TokenPairs, error) {
 		return TokenPairs{}, err
 	}
 
-	// Create a refresh token and set claims
-	refreshToken := jwt.New(jwt.SigningMethodHS256)
-	refreshTokenClaims := refreshToken.Claims.(jwt.MapClaims)
-	refreshTokenClaims["sub"] = fmt.Sprint(user.ID)
-	refreshTokenClaims["iat"] = time.Now().UTC().Unix()
-
-	// Set the expiry for the refresh token
-	refreshTokenClaims["exp"] = time.Now().UTC().Add(j.RefreshExpiry).Unix()
-
-	// Create signed refresh token
-	signedRefreshToken, err := refreshToken.SignedString([]byte(j.Secret))
-	if err != nil {
-		return TokenPairs{}, err
-	}
-
 	// Create TokenPairs and populate with signed tokens
 	var tokenPairs = TokenPairs{
-		Token:        signedAccessToken,
-		RefreshToken: signedRefreshToken,
+		Token: signedAccessToken,
 	}
 
 	// Return TokenPairs

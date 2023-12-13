@@ -1,18 +1,21 @@
-package auth
+package middlewares
 
 import (
 	"net/http"
 
+	"github.com/elidotexe/backend_byteurl/internal/auth"
 	"github.com/elidotexe/backend_byteurl/internal/config"
 )
 
 type AuthMiddleware struct {
 	app *config.AppConfig
+	auth *auth.Auth
 }
 
-func NewAuthMiddleware(app *config.AppConfig) *AuthMiddleware {
+func NewAuthMiddleware(app *config.AppConfig, authInstance *auth.Auth) *AuthMiddleware {
 	return &AuthMiddleware{
 		app: app,
+		auth: authInstance,
 	}
 }
 
@@ -32,14 +35,14 @@ func (a *AuthMiddleware) EnableCORS(next http.Handler) http.Handler {
 	})
 }
 
-// func (a *AuthMiddleware) RequireAuth(next http.Handler) http.Handler {
-// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		_, _, err := a.Aut.GetTokenFromHeaderAndVerify(w, r)
-// 		if err != nil {
-// 			w.WriteHeader(http.StatusUnauthorized)
-// 			return
-// 		}
-//
-// 		next.ServeHTTP(w, r)
-// 	})
-// }
+func (a *AuthMiddleware) RequireAuth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _, err := a.auth.GetTokenFromHeaderAndVerify(w, r)
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}

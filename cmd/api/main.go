@@ -25,8 +25,6 @@ func main() {
 	app.DSN = fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=disable",
 		config.DB_HOST, config.DB_PORT, config.DB_NAME, config.DB_USER, config.DB_PASSWORD)
 
-	fmt.Println(app.JWT_SECRET)
-
 	authInstance = &auth.Auth{
 		Secret:       config.JWT_SECRET,
 		Issuer:       config.JWT_ISSUER,
@@ -41,7 +39,7 @@ func main() {
 
 	src := &http.Server{
 		Addr:    ":" + app.PORT,
-		Handler: routes.SetupRoutes(&app),
+		Handler: routes.SetupRoutes(&app, authInstance),
 	}
 
 	log.Println("Starting server on port", app.PORT)
