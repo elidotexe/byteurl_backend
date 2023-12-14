@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/elidotexe/backend_byteurl/internal/auth"
@@ -236,7 +238,7 @@ func (m *Repository) RefreshToken(w http.ResponseWriter, r *http.Request) {
 
 			token, err := m.Auth.GenerateTokenPair(&u)
 			if err != nil {
-				utils.ErrorJSON(w, errors.New("error generating tokens"), http.StatusUnauthorized)
+				utils.ErrorJSON(w, errors.New("error generating token"), http.StatusUnauthorized)
 				return
 			}
 
@@ -247,15 +249,29 @@ func (m *Repository) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (m *Repository) UserForEdit(w http.ResponseWriter, r *http.Request) {
+func (m *Repository) UpdateUserName(w http.ResponseWriter, r *http.Request) {
+	// Get the user id from the url
+	path := strings.Split(r.URL.Path, "/")
+	id := path[len(path)-1]
+
+	userID, err := strconv.Atoi(id)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("invalid user id"), http.StatusBadRequest)
+		return
+	}
+
 	var payload struct {
-		ID   int    `json:"id"`
 		Name string `json:"name"`
 	}
 
-	err := utils.ReadJSON(w, r, &payload)
+	err = utils.ReadJSON(w, r, &payload)
 	if err != nil {
-		utils.ErrorJSON(w, err)
+		utils.ErrorJSON(w, errors.New("invalid request payload"), http.StatusBadRequest)
+		return
+	}
+
+	if payload.Name == "" {
+		utils.ErrorJSON(w, errors.New("name cannot be empty"), http.StatusBadRequest)
 		return
 	}
 
@@ -264,11 +280,20 @@ func (m *Repository) UserForEdit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Call your repository function to update the user
-	// if err := repo.UpdateUserByID(updateRequest.ID, models.User{Name: updateRequest.Name}); err != nil {
-	//     http.Error(w, err.Error(), http.StatusInternalServerError)
-	//     return
-	// }
+	updatedUser := &models.User{ID: userID, Name: payload.Name}
+	err = m.DB.UpdateUserNameByID(userID, updatedUser)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("failed to update user"), http.StatusInternalServerError)
+		return
+	}
 
-	utils.WriteJSON(w, http.StatusOK, payload)
+	updatedUser, err = m.DB.GetUserByID(userID)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("failed to retrieve updated user"), http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Println(updatedUser.Name)
+
+	utils.WriteJSON(w, http.StatusOK, updatedUser.Name)
 }

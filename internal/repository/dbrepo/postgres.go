@@ -21,13 +21,14 @@ func (m *postgresDBRepo) GetUserByEmail(email string) (*models.User, error) {
 	return &user, nil
 }
 
-func (m *postgresDBRepo) GetUserByID(id int) (*models.User, error) {
+func (m *postgresDBRepo) GetUserByID(userID int) (*models.User, error) {
 	var user models.User
 
-	if err := m.DB.First(&user, id).Error; err != nil {
+	if err := m.DB.Select("id, name, email").First(&user, userID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
+			return nil, err
 		}
+
 		return nil, err
 	}
 
@@ -54,7 +55,10 @@ func (m *postgresDBRepo) CreateUser(user *models.User) error {
 	return nil
 }
 
-func (m *postgresDBRepo) UpdateUser(user *models.User) error {
+func (m *postgresDBRepo) UpdateUserNameByID(userID int, user *models.User) error {
+	if err := m.DB.Model(&models.User{}).Where("id = ?", userID).Update("name", user.Name).Error; err != nil {
+		return err
+	}
 
 	return nil
 }

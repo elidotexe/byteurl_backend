@@ -7,4 +7,5 @@ type DatabaseRepo interface {
 	GetUserByID(id int) (*models.User, error)
 	UserExists(email string) (bool, error)
 	CreateUser(user *models.User) error
+	UpdateUserNameByID(userID int, user *models.User) error
 }
