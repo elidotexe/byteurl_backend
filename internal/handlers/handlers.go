@@ -95,23 +95,21 @@ func (m *Repository) Login(w http.ResponseWriter, r *http.Request) {
 		Email: user.Email,
 	}
 
-	tokens, err := m.Auth.GenerateTokenPair(&u)
+	token, err := m.Auth.GenerateTokenPair(&u)
 	if err != nil {
 		utils.ErrorJSON(w, err)
 		return
 	}
 
-	refreshCookie := m.Auth.GetRefreshCookie(tokens.RefreshToken)
+	u.Token = token
+
+	refreshCookie := m.Auth.GetRefreshCookie(token)
 	http.SetCookie(w, refreshCookie)
 
 	response := struct {
-		User         auth.JWTUser `json:"user"`
-		Token        string       `json:"access_token"`
-		RefreshToken string       `json:"refresh_token"`
+		User auth.JWTUser `json:"user"`
 	}{
-		User:         u,
-		Token:        tokens.Token,
-		RefreshToken: tokens.RefreshToken,
+		User: u,
 	}
 
 	_ = utils.WriteJSON(w, http.StatusOK, response)
@@ -183,23 +181,21 @@ func (m *Repository) Signup(w http.ResponseWriter, r *http.Request) {
 		Email: newUser.Email,
 	}
 
-	tokens, err := m.Auth.GenerateTokenPair(&u)
+	token, err := m.Auth.GenerateTokenPair(&u)
 	if err != nil {
 		utils.ErrorJSON(w, err)
 		return
 	}
 
-	refreshCookie := m.Auth.GetRefreshCookie(tokens.RefreshToken)
+	u.Token = token
+
+	refreshCookie := m.Auth.GetRefreshCookie(token)
 	http.SetCookie(w, refreshCookie)
 
 	response := struct {
-		User         auth.JWTUser `json:"user"`
-		Token        string       `json:"access_token"`
-		RefreshToken string       `json:"refresh_token"`
+		User auth.JWTUser `json:"user"`
 	}{
-		User:         u,
-		Token:        tokens.Token,
-		RefreshToken: tokens.RefreshToken,
+		User: u,
 	}
 
 	_ = utils.WriteJSON(w, http.StatusOK, response)
@@ -238,15 +234,15 @@ func (m *Repository) RefreshToken(w http.ResponseWriter, r *http.Request) {
 				Email: user.Email,
 			}
 
-			tokenPairs, err := m.Auth.GenerateTokenPair(&u)
+			token, err := m.Auth.GenerateTokenPair(&u)
 			if err != nil {
 				utils.ErrorJSON(w, errors.New("error generating tokens"), http.StatusUnauthorized)
 				return
 			}
 
-			http.SetCookie(w, m.Auth.GetRefreshCookie(tokenPairs.RefreshToken))
+			http.SetCookie(w, m.Auth.GetRefreshCookie(token))
 
-			utils.WriteJSON(w, http.StatusOK, tokenPairs)
+			utils.WriteJSON(w, http.StatusOK, token)
 		}
 	}
 }

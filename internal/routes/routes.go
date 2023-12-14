@@ -23,11 +23,11 @@ func SetupRoutes(app *config.AppConfig, authInstance *auth.Auth) http.Handler {
 	mux.Post("/login", handlers.Repo.Login)
 	mux.Post("/signup", handlers.Repo.Signup)
 	mux.Get("/refresh", handlers.Repo.RefreshToken)
-	mux.Post("/users", handlers.Repo.UserForEdit)
 
-	// mux.Route("/admin", func(r chi.Router) {
-	// 	// TODO: Implement admin routes
-	// }
+	mux.Route("/admin", func(mux chi.Router) {
+		mux.Use(authMiddleware.RequireAuth)
+		mux.Post("/users", handlers.Repo.UserForEdit)
+	})
 
 	apiRouter := chi.NewRouter()
 	apiRouter.Mount("/api", mux)

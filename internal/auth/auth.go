@@ -25,18 +25,14 @@ type JWTUser struct {
 	ID    int    `json:"id"`
 	Name  string `json:"name"`
 	Email string `json:"email"`
-}
-
-type TokenPairs struct {
-	Token        string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
+	Token string `json:"access_token"`
 }
 
 type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func (j *Auth) GenerateTokenPair(user *JWTUser) (TokenPairs, error) {
+func (j *Auth) GenerateTokenPair(user *JWTUser) (string, error) {
 	// Create a token
 	token := jwt.New(jwt.SigningMethodHS256)
 
@@ -55,23 +51,18 @@ func (j *Auth) GenerateTokenPair(user *JWTUser) (TokenPairs, error) {
 	// Create a signed token
 	signedAccessToken, err := token.SignedString([]byte(j.Secret))
 	if err != nil {
-		return TokenPairs{}, err
-	}
-
-	// Create TokenPairs and populate with signed tokens
-	var tokenPairs = TokenPairs{
-		Token: signedAccessToken,
+		return "", err
 	}
 
 	// Return TokenPairs
-	return tokenPairs, nil
+	return signedAccessToken, nil
 }
 
-func (j *Auth) GetRefreshCookie(refreshToken string) *http.Cookie {
+func (j *Auth) GetRefreshCookie(token string) *http.Cookie {
 	return &http.Cookie{
 		Name:     j.CookieName,
 		Path:     j.CookiePath,
-		Value:    refreshToken,
+		Value:    token,
 		Expires:  time.Now().Add(j.RefreshExpiry),
 		MaxAge:   int(j.RefreshExpiry.Seconds()),
 		SameSite: http.SameSiteStrictMode,
