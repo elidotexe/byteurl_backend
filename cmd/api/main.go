@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/elidotexe/backend_byteurl/internal/auth"
 	"github.com/elidotexe/backend_byteurl/internal/config"
@@ -26,9 +27,12 @@ func main() {
 		config.DB_HOST, config.DB_PORT, config.DB_NAME, config.DB_USER, config.DB_PASSWORD)
 
 	authInstance = &auth.Auth{
-		Secret:       config.JWT_SECRET,
 		Issuer:       config.JWT_ISSUER,
 		Audience:     config.JWT_AUDIENCE,
+		Secret:       config.JWT_SECRET,
+		TokenExpiry:  time.Hour * 24,
+		CookiePath:   "/",
+		CookieName:   "__Host-refresh_token",
 		CookieDomain: config.COOKIE_DOMAIN,
 	}
 

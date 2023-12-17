@@ -8,13 +8,13 @@ import (
 )
 
 type AuthMiddleware struct {
-	app *config.AppConfig
+	app  *config.AppConfig
 	auth *auth.Auth
 }
 
 func NewAuthMiddleware(app *config.AppConfig, authInstance *auth.Auth) *AuthMiddleware {
 	return &AuthMiddleware{
-		app: app,
+		app:  app,
 		auth: authInstance,
 	}
 }
@@ -25,7 +25,7 @@ func (a *AuthMiddleware) EnableCORS(next http.Handler) http.Handler {
 
 		if r.Method == "OPTIONS" {
 			w.Header().Set("Access-Control-Allow-Credentials", "true")
-			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 			w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 			w.WriteHeader(http.StatusNoContent)
 			return

@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -105,7 +104,7 @@ func (m *Repository) Login(w http.ResponseWriter, r *http.Request) {
 
 	u.Token = token
 
-	refreshCookie := m.Auth.GetRefreshCookie(token)
+	refreshCookie := m.Auth.GetRefreshCookie(u.Token)
 	http.SetCookie(w, refreshCookie)
 
 	response := struct {
@@ -276,24 +275,27 @@ func (m *Repository) UpdateUserName(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(payload.Name) < 3 || len(payload.Name) > 32 {
-		utils.ErrorJSON(w, errors.New("name must be between 3 and 50 characters"), http.StatusBadRequest)
+		utils.ErrorJSON(w, errors.New("name must be between 3 and 32 characters"), http.StatusBadRequest)
 		return
 	}
 
 	updatedUser := &models.User{ID: userID, Name: payload.Name}
-	err = m.DB.UpdateUserNameByID(userID, updatedUser)
-	if err != nil {
-		utils.ErrorJSON(w, errors.New("failed to update user"), http.StatusInternalServerError)
-		return
-	}
-
 	updatedUser, err = m.DB.GetUserByID(userID)
 	if err != nil {
 		utils.ErrorJSON(w, errors.New("failed to retrieve updated user"), http.StatusInternalServerError)
 		return
 	}
 
-	fmt.Println(updatedUser.Name)
+	if updatedUser.Name == payload.Name {
+		utils.ErrorJSON(w, errors.New("name is the same"), http.StatusBadRequest)
+		return
+	}
+
+	err = m.DB.UpdateUserNameByID(userID, updatedUser)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("failed to update user"), http.StatusInternalServerError)
+		return
+	}
 
 	utils.WriteJSON(w, http.StatusOK, updatedUser.Name)
 }

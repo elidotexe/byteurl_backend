@@ -11,14 +11,13 @@ import (
 )
 
 type Auth struct {
-	Issuer        string
-	Audience      string
-	Secret        string
-	TokenExpiry   time.Duration
-	RefreshExpiry time.Duration
-	CookieDomain  string
-	CookiePath    string
-	CookieName    string
+	Issuer       string
+	Audience     string
+	Secret       string
+	TokenExpiry  time.Duration
+	CookieDomain string
+	CookiePath   string
+	CookieName   string
 }
 
 type JWTUser struct {
@@ -63,8 +62,8 @@ func (j *Auth) GetRefreshCookie(token string) *http.Cookie {
 		Name:     j.CookieName,
 		Path:     j.CookiePath,
 		Value:    token,
-		Expires:  time.Now().Add(j.RefreshExpiry),
-		MaxAge:   int(j.RefreshExpiry.Seconds()),
+		Expires:  time.Now().Add(j.TokenExpiry),
+		MaxAge:   int(j.TokenExpiry.Seconds()),
 		SameSite: http.SameSiteStrictMode,
 		Domain:   j.CookieDomain,
 		HttpOnly: true,
@@ -117,10 +116,11 @@ func (j *Auth) GetTokenFromHeaderAndVerify(w http.ResponseWriter, r *http.Reques
 	})
 
 	if err != nil {
-		if strings.HasPrefix(err.Error(), "Token is expired by") {
+		if strings.Contains(err.Error(), "token is expired by") {
 			return "", nil, errors.New("expired token")
 		}
-		return "", nil, err
+
+		return "", nil, errors.New("invalid token")
 	}
 
 	if claims.Issuer != j.Issuer {
