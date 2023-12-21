@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/elidotexe/backend_byteurl/internal/auth"
@@ -14,7 +13,6 @@ import (
 	"github.com/elidotexe/backend_byteurl/internal/repository"
 	"github.com/elidotexe/backend_byteurl/internal/repository/dbrepo"
 	"github.com/elidotexe/backend_byteurl/internal/utils"
-	"github.com/golang-jwt/jwt/v4"
 )
 
 var Repo *Repository
@@ -202,56 +200,8 @@ func (m *Repository) Signup(w http.ResponseWriter, r *http.Request) {
 	_ = utils.WriteJSON(w, http.StatusOK, response)
 }
 
-func (m *Repository) RefreshToken(w http.ResponseWriter, r *http.Request) {
-	for _, cookie := range r.Cookies() {
-		if cookie.Name == m.Auth.CookieName {
-			claims := &auth.Claims{}
-			refreshToken := cookie.Value
-
-			// parse the token to get the claims
-			_, err := jwt.ParseWithClaims(refreshToken, claims, func(token *jwt.Token) (interface{}, error) {
-				return []byte(m.Auth.Secret), nil
-			})
-			if err != nil {
-				utils.ErrorJSON(w, errors.New("unauthorized"), http.StatusUnauthorized)
-				return
-			}
-
-			// get the user id from the token claims
-			userID, err := strconv.Atoi(claims.Subject)
-			if err != nil {
-				utils.ErrorJSON(w, errors.New("unknown user"), http.StatusUnauthorized)
-				return
-			}
-
-			user, err := m.DB.GetUserByID(userID)
-			if err != nil {
-				utils.ErrorJSON(w, errors.New("unknown user"), http.StatusUnauthorized)
-				return
-			}
-
-			u := auth.JWTUser{
-				ID:    user.ID,
-				Email: user.Email,
-			}
-
-			token, err := m.Auth.GenerateTokenPair(&u)
-			if err != nil {
-				utils.ErrorJSON(w, errors.New("error generating token"), http.StatusUnauthorized)
-				return
-			}
-
-			http.SetCookie(w, m.Auth.GetRefreshCookie(token))
-
-			utils.WriteJSON(w, http.StatusOK, token)
-		}
-	}
-}
-
 func (m *Repository) UpdateUserName(w http.ResponseWriter, r *http.Request) {
-	// Get the user id from the url
-	path := strings.Split(r.URL.Path, "/")
-	id := path[len(path)-1]
+	id := utils.GetIDFromURL(r.URL.Path)
 
 	userID, err := strconv.Atoi(id)
 	if err != nil {
@@ -298,4 +248,22 @@ func (m *Repository) UpdateUserName(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteJSON(w, http.StatusOK, updatedUser.Name)
+}
+
+func (m *Repository) AllUserLinks(w http.ResponseWriter, r *http.Request) {
+	id := utils.GetIDFromURL(r.URL.Path)
+
+	userID, err := strconv.Atoi(id)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("invalid user id"), http.StatusBadRequest)
+		return
+	}
+
+	links, err := m.DB.GetAllUserLinks(userID)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("failed to retrieve user links"), http.StatusInternalServerError)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, links)
 }

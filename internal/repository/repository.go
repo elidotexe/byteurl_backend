@@ -8,4 +8,6 @@ type DatabaseRepo interface {
 	UserExists(email string) (bool, error)
 	CreateUser(user *models.User) error
 	UpdateUserNameByID(userID int, user *models.User) error
+
+	GetAllUserLinks(userID int) ([]models.Link, error)
 }

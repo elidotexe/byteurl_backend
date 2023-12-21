@@ -27,6 +27,8 @@ func SetupRoutes(app *config.AppConfig, authInstance *auth.Auth) http.Handler {
 		mux.Use(authMiddleware.RequireAuth)
 
 		mux.Patch("/users/{id}", handlers.Repo.UpdateUserName)
+
+		mux.Get("/users/{id}/links", handlers.Repo.AllUserLinks)
 	})
 
 	apiRouter := chi.NewRouter()

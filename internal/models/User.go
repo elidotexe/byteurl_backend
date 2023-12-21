@@ -7,11 +7,22 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type Link struct {
+	ID          int       `json:"id"`
+	UserID      int       `json:"user_id" gorm:"index" validate:"required"`
+	OriginalURL string    `json:"original_url"`
+	ShortURL    string    `json:"short_url"`
+	Clicks      int       `json:"clicks"`
+	CreatedAt   time.Time `json:"-"`
+	UpdatedAt   time.Time `json:"-"`
+}
+
 type User struct {
 	ID        int       `json:"id"`
 	Name      string    `json:"name"`
 	Email     string    `json:"email"`
 	Password  string    `json:"password"`
+	Links     []*Link   `json:"links" gorm:"foreignKey:UserID;references:ID"`
 	CreatedAt time.Time `json:"-"`
 	UpdatedAt time.Time `json:"-"`
 }

@@ -36,7 +36,8 @@ func (m *postgresDBRepo) GetUserByID(userID int) (*models.User, error) {
 }
 
 func (m *postgresDBRepo) UserExists(email string) (bool, error) {
-	existingUser := models.User{}
+	var existingUser models.User
+
 	if err := m.DB.Where("email = ?", email).First(&existingUser).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
@@ -61,4 +62,14 @@ func (m *postgresDBRepo) UpdateUserNameByID(userID int, user *models.User) error
 	}
 
 	return nil
+}
+
+func (m *postgresDBRepo) GetAllUserLinks(userID int) ([]models.Link, error) {
+	var links []models.Link
+
+	if err := m.DB.Where("user_id = ?", userID).Find(&links).Error; err != nil {
+		return nil, err
+	}
+
+	return links, nil
 }

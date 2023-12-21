@@ -71,20 +71,6 @@ func (j *Auth) GetRefreshCookie(token string) *http.Cookie {
 	}
 }
 
-func (j *Auth) GetExpiredRefreshCookie() *http.Cookie {
-	return &http.Cookie{
-		Name:     j.CookieName,
-		Path:     j.CookiePath,
-		Value:    "",
-		Expires:  time.Unix(0, 0),
-		MaxAge:   -1,
-		SameSite: http.SameSiteStrictMode,
-		Domain:   j.CookieDomain,
-		HttpOnly: true,
-		Secure:   true,
-	}
-}
-
 func (j *Auth) GetTokenFromHeaderAndVerify(w http.ResponseWriter, r *http.Request) (string, *Claims, error) {
 	w.Header().Add("Vary", "Authorization")
 
