@@ -24,7 +24,7 @@ type JWTUser struct {
 	ID    int    `json:"id"`
 	Name  string `json:"name"`
 	Email string `json:"email"`
-	Token string `json:"access_token"`
+	Token string `json:"token"`
 }
 
 type Claims struct {

@@ -9,12 +9,13 @@ import (
 
 type Link struct {
 	ID          int       `json:"id"`
-	UserID      int       `json:"user_id" gorm:"index" validate:"required"`
-	OriginalURL string    `json:"original_url"`
-	ShortURL    string    `json:"short_url"`
-	Clicks      int       `json:"clicks"`
-	CreatedAt   time.Time `json:"-"`
-	UpdatedAt   time.Time `json:"-"`
+	UserID      int       `json:"userId" gorm:"index" validate:"required"`
+	Title       string    `json:"title"`
+	OriginalURL string    `json:"originalUrl" validate:"required,url"`
+	ShortenURL  string    `json:"shortenUrl"`
+	Clicks      int       `json:"clicks" sql:"default:0"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
 }
 
 type User struct {
