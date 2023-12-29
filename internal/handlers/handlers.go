@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"math/rand"
 	"net/http"
 	"strconv"
 	"time"
@@ -201,7 +202,7 @@ func (m *Repository) Signup(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m *Repository) UpdateUserName(w http.ResponseWriter, r *http.Request) {
-	id := utils.GetIDFromURL(r.URL.Path)
+	id, _ := utils.GetIDFromURL(r.URL.Path)
 
 	userID, err := strconv.Atoi(id)
 	if err != nil {
@@ -250,20 +251,76 @@ func (m *Repository) UpdateUserName(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, updatedUser.Name)
 }
 
-func (m *Repository) AllUserLinks(w http.ResponseWriter, r *http.Request) {
-	id := utils.GetIDFromURL(r.URL.Path)
-
+func (m *Repository) AllLinks(w http.ResponseWriter, r *http.Request) {
+	id, _ := utils.GetIDFromURL(r.URL.Path)
 	userID, err := strconv.Atoi(id)
 	if err != nil {
 		utils.ErrorJSON(w, errors.New("invalid user id"), http.StatusBadRequest)
 		return
 	}
 
-	links, err := m.DB.GetAllUserLinks(userID)
+	links, err := m.DB.GetAllLinks(userID)
 	if err != nil {
 		utils.ErrorJSON(w, errors.New("failed to retrieve user links"), http.StatusInternalServerError)
 		return
 	}
 
 	utils.WriteJSON(w, http.StatusOK, links)
+}
+
+func (m *Repository) CreateLink(w http.ResponseWriter, r *http.Request) {
+	pathUserID, _ := utils.GetIDFromURL(r.URL.Path)
+	if pathUserID == "" {
+		utils.ErrorJSON(w, errors.New("pathUserID is empty"), http.StatusBadRequest)
+		return
+	}
+
+	userID, err := strconv.Atoi(pathUserID)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("invalid user id"), http.StatusBadRequest)
+		return
+	}
+
+	var payload struct {
+		Title       string `json:"title"`
+		OriginalURL string `json:"originalUrl"`
+	}
+
+	err = utils.ReadJSON(w, r, &payload)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("invalid request payload"), http.StatusBadRequest)
+		return
+	}
+
+	randString := generateRandomString(5)
+
+	newLink := models.Link{
+		UserID:      userID,
+		Title:       payload.Title,
+		OriginalURL: payload.OriginalURL,
+		ShortenURL:  "https://byteurl.io/" + randString,
+		Clicks:      0,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	}
+
+	insertLink, err := m.DB.InsertLink(&newLink)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("failed to insert link"), http.StatusInternalServerError)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, insertLink)
+}
+
+func generateRandomString(length int) string {
+	rand.Seed(time.Now().UnixNano())
+
+	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	result := make([]byte, length)
+	for i := 0; i < length; i++ {
+		result[i] = letters[rand.Intn(len(letters))]
+	}
+
+	return string(result)
 }

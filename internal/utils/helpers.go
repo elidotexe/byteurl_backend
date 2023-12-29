@@ -16,13 +16,24 @@ func IsValidEmail(email string) bool {
 	return false
 }
 
-func GetIDFromURL(urlPath string) string {
-	// Get the userID from the URL path
+func GetIDFromURL(urlPath string) (string, string) {
+	var userID string
+	var linkID string
+
+	// Get the IDs from the URL path
 	userIDRegex := regexp.MustCompile(`/users/(\d+)`)
-	matches := userIDRegex.FindStringSubmatch(urlPath)
-	if len(matches) >= 2 {
-		return matches[1]
+	userIDMatches := userIDRegex.FindStringSubmatch(urlPath)
+
+	if len(userIDMatches) >= 2 {
+		userID = userIDMatches[1]
 	}
 
-	return ""
+	linkIDRegex := regexp.MustCompile(`/links/(\d+)`)
+	linkIDMatches := linkIDRegex.FindStringSubmatch(urlPath)
+
+	if len(linkIDMatches) >= 2 {
+		linkID = linkIDMatches[1]
+	}
+
+	return userID, linkID
 }

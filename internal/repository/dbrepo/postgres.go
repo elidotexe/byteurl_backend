@@ -64,7 +64,7 @@ func (m *postgresDBRepo) UpdateUserNameByID(userID int, user *models.User) error
 	return nil
 }
 
-func (m *postgresDBRepo) GetAllUserLinks(userID int) ([]models.Link, error) {
+func (m *postgresDBRepo) GetAllLinks(userID int) ([]models.Link, error) {
 	var links []models.Link
 
 	if err := m.DB.Where("user_id = ?", userID).Find(&links).Error; err != nil {
@@ -72,4 +72,20 @@ func (m *postgresDBRepo) GetAllUserLinks(userID int) ([]models.Link, error) {
 	}
 
 	return links, nil
+}
+
+func (m *postgresDBRepo) InsertLink(link *models.Link) (*models.Link, error) {
+	var maxLinkID int
+
+	if err := m.DB.Model(&models.Link{}).Where("user_id = ?", link.UserID).Select("COALESCE(MAX(id), 0)").Row().Scan(&maxLinkID); err != nil {
+		return nil, err
+	}
+
+	link.ID = maxLinkID + 1
+
+	if err := m.DB.Create(link).Error; err != nil {
+		return nil, err
+	}
+
+	return link, nil
 }

@@ -9,5 +9,6 @@ type DatabaseRepo interface {
 	CreateUser(user *models.User) error
 	UpdateUserNameByID(userID int, user *models.User) error
 
-	GetAllUserLinks(userID int) ([]models.Link, error)
+	GetAllLinks(userID int) ([]models.Link, error)
+	InsertLink(link *models.Link) (*models.Link, error)
 }
