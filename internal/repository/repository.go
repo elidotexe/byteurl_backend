@@ -11,4 +11,5 @@ type DatabaseRepo interface {
 
 	GetAllLinks(userID int) ([]models.Link, error)
 	InsertLink(link *models.Link) (*models.Link, error)
+	DeleteLink(userID int, linkID int) error
 }

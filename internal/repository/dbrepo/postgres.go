@@ -89,3 +89,16 @@ func (m *postgresDBRepo) InsertLink(link *models.Link) (*models.Link, error) {
 
 	return link, nil
 }
+
+func (m *postgresDBRepo) DeleteLink(userID int, linkID int) error {
+	result := m.DB.Where("user_id = ? AND id = ?", userID, linkID).Delete(&models.Link{})
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return errors.New("link not found")
+	}
+
+	return nil
+}

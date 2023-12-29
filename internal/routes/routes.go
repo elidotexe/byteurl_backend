@@ -23,14 +23,14 @@ func SetupRoutes(app *config.AppConfig, authInstance *auth.Auth) http.Handler {
 	mux.Post("/login", handlers.Repo.Login)
 	mux.Post("/signup", handlers.Repo.Signup)
 
-	mux.Put("/users/{id}/links/0", handlers.Repo.CreateLink)
-
 	mux.Route("/admin", func(mux chi.Router) {
 		mux.Use(authMiddleware.RequireAuth)
 
 		mux.Patch("/users/{id}", handlers.Repo.UpdateUserName)
 
 		mux.Get("/users/{id}/links", handlers.Repo.AllLinks)
+		mux.Put("/users/{id}/links/0", handlers.Repo.CreateLink)
+		mux.Delete("/users/{id}/links/{linkID}", handlers.Repo.DeleteLink)
 	})
 
 	apiRouter := chi.NewRouter()

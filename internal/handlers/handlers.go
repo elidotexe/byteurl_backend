@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"errors"
-	"math/rand"
 	"net/http"
 	"strconv"
 	"time"
@@ -292,7 +291,7 @@ func (m *Repository) CreateLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	randString := generateRandomString(5)
+	randString := utils.GenerateRandomString(5)
 
 	newLink := models.Link{
 		UserID:      userID,
@@ -313,14 +312,30 @@ func (m *Repository) CreateLink(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, insertLink)
 }
 
-func generateRandomString(length int) string {
-	rand.Seed(time.Now().UnixNano())
-
-	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	result := make([]byte, length)
-	for i := 0; i < length; i++ {
-		result[i] = letters[rand.Intn(len(letters))]
+func (m *Repository) DeleteLink(w http.ResponseWriter, r *http.Request) {
+	pathUserID, pathLinkID := utils.GetIDFromURL(r.URL.Path)
+	if pathUserID == "" || pathLinkID == "" {
+		utils.ErrorJSON(w, errors.New("pathUserID is empty"), http.StatusBadRequest)
+		return
 	}
 
-	return string(result)
+	userID, err := strconv.Atoi(pathUserID)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("invalid user id"), http.StatusBadRequest)
+		return
+	}
+
+	linkID, err := strconv.Atoi(pathLinkID)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("invalid user id"), http.StatusBadRequest)
+		return
+	}
+
+	err = m.DB.DeleteLink(userID, linkID)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("failed to delete link"), http.StatusInternalServerError)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, "Link successfully deleted!")
 }

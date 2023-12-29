@@ -1,8 +1,10 @@
 package utils
 
 import (
+	"math/rand"
 	"net/mail"
 	"regexp"
+	"time"
 )
 
 func IsValidEmail(email string) bool {
@@ -36,4 +38,16 @@ func GetIDFromURL(urlPath string) (string, string) {
 	}
 
 	return userID, linkID
+}
+
+func GenerateRandomString(length int) string {
+	rand.Seed(time.Now().UnixNano())
+
+	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	result := make([]byte, length)
+	for i := 0; i < length; i++ {
+		result[i] = letters[rand.Intn(len(letters))]
+	}
+
+	return string(result)
 }
