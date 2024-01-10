@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -291,6 +292,21 @@ func (m *Repository) CreateLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(payload.Title) < 3 {
+		utils.ErrorJSON(w, errors.New("title must be at least 3 characters"), http.StatusBadRequest)
+		return
+	}
+
+	if payload.OriginalURL == "" {
+		utils.ErrorJSON(w, errors.New("originalUrl cannot be empty"), http.StatusBadRequest)
+		return
+	}
+	_, err = url.Parse(payload.OriginalURL)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("invalid originalUrl"), http.StatusBadRequest)
+		return
+	}
+
 	randString := utils.GenerateRandomString(5)
 
 	newLink := models.Link{
@@ -310,6 +326,103 @@ func (m *Repository) CreateLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteJSON(w, http.StatusOK, insertLink)
+}
+
+func (m *Repository) UpdateLink(w http.ResponseWriter, r *http.Request) {
+	pathUserID, pathLinkID := utils.GetIDFromURL(r.URL.Path)
+	if pathUserID == "" {
+		utils.ErrorJSON(w, errors.New("pathUserID is empty"), http.StatusBadRequest)
+		return
+	}
+
+	if pathLinkID == "" {
+		utils.ErrorJSON(w, errors.New("pathLinkID is empty"), http.StatusBadRequest)
+		return
+	}
+
+	userID, err := strconv.Atoi(pathUserID)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("invalid user id"), http.StatusBadRequest)
+		return
+	}
+
+	pathID, err := strconv.Atoi(pathLinkID)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("invalid user id"), http.StatusBadRequest)
+		return
+	}
+
+	var payload struct {
+		Title       string `json:"title"`
+		OriginalURL string `json:"originalUrl"`
+	}
+
+	err = utils.ReadJSON(w, r, &payload)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("invalid request payload"), http.StatusBadRequest)
+		return
+	}
+
+	if len(payload.Title) < 3 {
+		utils.ErrorJSON(w, errors.New("title must be at least 3 characters"), http.StatusBadRequest)
+		return
+	}
+
+	if payload.OriginalURL == "" {
+		utils.ErrorJSON(w, errors.New("originalUrl cannot be empty"), http.StatusBadRequest)
+		return
+	}
+	_, err = url.Parse(payload.OriginalURL)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("invalid originalUrl"), http.StatusBadRequest)
+		return
+	}
+
+	link, err := m.DB.GetLink(userID, pathID)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("failed to retrieve link"), http.StatusInternalServerError)
+		return
+	}
+
+	link.Title = payload.Title
+	link.OriginalURL = payload.OriginalURL
+	link.UpdatedAt = time.Now()
+
+	updatedLink, err := m.DB.UpdateLink(link)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("failed to update link"), http.StatusInternalServerError)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, updatedLink)
+}
+
+func (m *Repository) SingleLink(w http.ResponseWriter, r *http.Request) {
+	pathUserID, pathLinkID := utils.GetIDFromURL(r.URL.Path)
+	if pathUserID == "" || pathLinkID == "" {
+		utils.ErrorJSON(w, errors.New("pathUserID is empty"), http.StatusBadRequest)
+		return
+	}
+
+	userID, err := strconv.Atoi(pathUserID)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("invalid user id"), http.StatusBadRequest)
+		return
+	}
+
+	linkID, err := strconv.Atoi(pathLinkID)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("invalid user id"), http.StatusBadRequest)
+		return
+	}
+
+	link, err := m.DB.GetLink(userID, linkID)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("failed to retrieve link"), http.StatusInternalServerError)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, link)
 }
 
 func (m *Repository) DeleteLink(w http.ResponseWriter, r *http.Request) {
