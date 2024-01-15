@@ -105,6 +105,20 @@ func (m *postgresDBRepo) GetLink(userID, linkID int) (*models.Link, error) {
 	return &link, nil
 }
 
+func (m *postgresDBRepo) GetLinkByShortenURL(shortenURL string) (*models.Link, error) {
+	var link models.Link
+
+	result := m.DB.Where("shorten_url = ?", shortenURL).First(&link)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, errors.New("link not found")
+		}
+		return nil, result.Error
+	}
+
+	return &link, nil
+}
+
 func (m *postgresDBRepo) UpdateLink(link *models.Link) (*models.Link, error) {
 	result := m.DB.Model(&models.Link{}).Where("user_id = ? AND id = ?", link.UserID, link.ID).Updates(models.Link{Title: link.Title, OriginalURL: link.OriginalURL, UpdatedAt: link.UpdatedAt})
 	if result.Error != nil {

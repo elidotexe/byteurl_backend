@@ -1,10 +1,10 @@
 package utils
 
 import (
+	"encoding/base64"
 	"math/rand"
 	"net/mail"
 	"regexp"
-	"time"
 )
 
 func IsValidEmail(email string) bool {
@@ -40,14 +40,20 @@ func GetIDFromURL(urlPath string) (string, string) {
 	return userID, linkID
 }
 
-func GenerateRandomString(length int) string {
-	rand.Seed(time.Now().UnixNano())
-
-	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	result := make([]byte, length)
-	for i := 0; i < length; i++ {
-		result[i] = letters[rand.Intn(len(letters))]
+func GenerateRandomHash(length int) (string, error) {
+	byteLength := (length * 6) / 8
+	if (length*6)%8 != 0 {
+		byteLength++
 	}
 
-	return string(result)
+	randomBytes := make([]byte, byteLength)
+	_, err := rand.Read(randomBytes)
+	if err != nil {
+		return "", err
+	}
+
+	randomString := base64.URLEncoding.EncodeToString(randomBytes)
+	randomString = randomString[:length]
+
+	return randomString, nil
 }

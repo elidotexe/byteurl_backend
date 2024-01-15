@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -307,13 +309,17 @@ func (m *Repository) CreateLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	randString := utils.GenerateRandomString(5)
+	randHash, err := utils.GenerateRandomHash(10)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("failed to generate random hash"), http.StatusInternalServerError)
+		return
+	}
 
 	newLink := models.Link{
 		UserID:      userID,
 		Title:       payload.Title,
 		OriginalURL: payload.OriginalURL,
-		ShortenURL:  "https://byteurl.io/" + randString,
+		ShortenURL:  "http://localhost:3000/" + randHash,
 		Clicks:      0,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
@@ -326,6 +332,36 @@ func (m *Repository) CreateLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteJSON(w, http.StatusOK, insertLink)
+}
+
+func (m *Repository) RiderectToOriginalURL(w http.ResponseWriter, r *http.Request) {
+	fmt.Println(r.URL.Path)
+	shortURLPattern := regexp.MustCompile(`/([a-zA-Z0-9-]+)$`)
+	matches := shortURLPattern.FindStringSubmatch(r.URL.Path)
+	if len(matches) < 2 {
+		utils.ErrorJSON(w, errors.New("invalid short url"), http.StatusBadRequest)
+		return
+	}
+
+	shortURL := matches[1]
+
+	fmt.Println(shortURL)
+
+	link, err := m.DB.GetLinkByShortenURL(shortURL)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("failed to retrieve link"), http.StatusInternalServerError)
+		return
+	}
+
+	link.Clicks++
+
+	_, err = m.DB.UpdateLink(link)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("failed to update link"), http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, link.OriginalURL, http.StatusFound)
 }
 
 func (m *Repository) UpdateLink(w http.ResponseWriter, r *http.Request) {
