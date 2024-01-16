@@ -319,7 +319,7 @@ func (m *Repository) CreateLink(w http.ResponseWriter, r *http.Request) {
 		UserID:      userID,
 		Title:       payload.Title,
 		OriginalURL: payload.OriginalURL,
-		ShortenURL:  "http://localhost:3000/" + randHash,
+		ShortenURL:  randHash,
 		Clicks:      0,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
@@ -336,18 +336,18 @@ func (m *Repository) CreateLink(w http.ResponseWriter, r *http.Request) {
 
 func (m *Repository) RiderectToOriginalURL(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(r.URL.Path)
-	shortURLPattern := regexp.MustCompile(`/([a-zA-Z0-9-]+)$`)
-	matches := shortURLPattern.FindStringSubmatch(r.URL.Path)
+	hashURLPattern := regexp.MustCompile(`/([a-zA-Z0-9-]+)$`)
+	matches := hashURLPattern.FindStringSubmatch(r.URL.Path)
 	if len(matches) < 2 {
 		utils.ErrorJSON(w, errors.New("invalid short url"), http.StatusBadRequest)
 		return
 	}
 
-	shortURL := matches[1]
+	hash := matches[1]
 
-	fmt.Println(shortURL)
+	fmt.Println(hash)
 
-	link, err := m.DB.GetLinkByShortenURL(shortURL)
+	link, err := m.DB.GetLinkByShortenURL(hash)
 	if err != nil {
 		utils.ErrorJSON(w, errors.New("failed to retrieve link"), http.StatusInternalServerError)
 		return

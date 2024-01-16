@@ -23,6 +23,8 @@ func SetupRoutes(app *config.AppConfig, authInstance *auth.Auth) http.Handler {
 	mux.Post("/login", handlers.Repo.Login)
 	mux.Post("/signup", handlers.Repo.Signup)
 
+	mux.Get("/users/{id}/links/{short}", handlers.Repo.RiderectToOriginalURL)
+
 	mux.Route("/admin", func(mux chi.Router) {
 		mux.Use(authMiddleware.RequireAuth)
 
@@ -31,7 +33,6 @@ func SetupRoutes(app *config.AppConfig, authInstance *auth.Auth) http.Handler {
 		mux.Get("/users/{id}/links", handlers.Repo.AllLinks)
 		mux.Put("/users/{id}/links/0", handlers.Repo.CreateLink)
 		mux.Get("/users/{id}/links/{linkID}", handlers.Repo.SingleLink)
-		mux.Get("/users/{id}/links/{short}", handlers.Repo.RiderectToOriginalURL)
 		mux.Patch("/users/{id}/links/{linkID}", handlers.Repo.UpdateLink)
 		mux.Delete("/users/{id}/links/{linkID}", handlers.Repo.DeleteLink)
 	})
