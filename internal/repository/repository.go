@@ -14,5 +14,6 @@ type DatabaseRepo interface {
 	GetLink(userID, linkID int) (*models.Link, error)
 	GetLinkByShortenURL(shortenURL string) (*models.Link, error)
 	UpdateLink(link *models.Link) (*models.Link, error)
+	UpdateRedirectDetails(link *models.Link) (*models.Link, error)
 	DeleteLink(userID int, linkID int) error
 }

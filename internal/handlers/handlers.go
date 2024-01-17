@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -335,7 +334,6 @@ func (m *Repository) CreateLink(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m *Repository) RiderectToOriginalURL(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(r.URL.Path)
 	hashURLPattern := regexp.MustCompile(`/([a-zA-Z0-9-]+)$`)
 	matches := hashURLPattern.FindStringSubmatch(r.URL.Path)
 	if len(matches) < 2 {
@@ -345,8 +343,6 @@ func (m *Repository) RiderectToOriginalURL(w http.ResponseWriter, r *http.Reques
 
 	hash := matches[1]
 
-	fmt.Println(hash)
-
 	link, err := m.DB.GetLinkByShortenURL(hash)
 	if err != nil {
 		utils.ErrorJSON(w, errors.New("failed to retrieve link"), http.StatusInternalServerError)
@@ -355,13 +351,15 @@ func (m *Repository) RiderectToOriginalURL(w http.ResponseWriter, r *http.Reques
 
 	link.Clicks++
 
-	_, err = m.DB.UpdateLink(link)
+	_, err = m.DB.UpdateRedirectDetails(link)
 	if err != nil {
 		utils.ErrorJSON(w, errors.New("failed to update link"), http.StatusInternalServerError)
 		return
 	}
 
-	http.Redirect(w, r, link.OriginalURL, http.StatusFound)
+	response := map[string]string{"originalUrl": link.OriginalURL}
+
+	utils.WriteJSON(w, http.StatusOK, response)
 }
 
 func (m *Repository) UpdateLink(w http.ResponseWriter, r *http.Request) {

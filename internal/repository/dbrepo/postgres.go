@@ -120,7 +120,26 @@ func (m *postgresDBRepo) GetLinkByShortenURL(shortenURL string) (*models.Link, e
 }
 
 func (m *postgresDBRepo) UpdateLink(link *models.Link) (*models.Link, error) {
-	result := m.DB.Model(&models.Link{}).Where("user_id = ? AND id = ?", link.UserID, link.ID).Updates(models.Link{Title: link.Title, OriginalURL: link.OriginalURL, UpdatedAt: link.UpdatedAt})
+	result := m.DB.Model(&models.Link{}).Where("user_id = ? AND id = ?", link.UserID, link.ID).Updates(models.Link{
+		Title:       link.Title,
+		OriginalURL: link.OriginalURL,
+		UpdatedAt:   link.UpdatedAt,
+	})
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return nil, errors.New("link not found")
+	}
+
+	return link, nil
+}
+
+func (m *postgresDBRepo) UpdateRedirectDetails(link *models.Link) (*models.Link, error) {
+	result := m.DB.Model(&models.Link{}).Where("user_id = ? AND id = ?", link.UserID, link.ID).Updates(models.Link{
+		Clicks: link.Clicks,
+	})
 	if result.Error != nil {
 		return nil, result.Error
 	}
