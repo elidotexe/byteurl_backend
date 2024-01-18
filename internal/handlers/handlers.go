@@ -202,6 +202,26 @@ func (m *Repository) Signup(w http.ResponseWriter, r *http.Request) {
 	_ = utils.WriteJSON(w, http.StatusOK, response)
 }
 
+func (m *Repository) GetUserName(w http.ResponseWriter, r *http.Request) {
+	id, _ := utils.GetIDFromURL(r.URL.Path)
+
+	userID, err := strconv.Atoi(id)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("invalid user id"), http.StatusBadRequest)
+		return
+	}
+
+	user, err := m.DB.GetUserByID(userID)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("invalid user"), http.StatusBadRequest)
+		return
+	}
+
+	response := map[string]string{"name": user.Name}
+
+	utils.WriteJSON(w, http.StatusOK, response)
+}
+
 func (m *Repository) UpdateUserName(w http.ResponseWriter, r *http.Request) {
 	id, _ := utils.GetIDFromURL(r.URL.Path)
 
@@ -231,16 +251,21 @@ func (m *Repository) UpdateUserName(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedUser := &models.User{ID: userID, Name: payload.Name}
-	updatedUser, err = m.DB.GetUserByID(userID)
+	var user *models.User
+	user, err = m.DB.GetUserByID(userID)
 	if err != nil {
 		utils.ErrorJSON(w, errors.New("failed to retrieve updated user"), http.StatusInternalServerError)
 		return
 	}
 
-	if updatedUser.Name == payload.Name {
+	if user.Name == payload.Name {
 		utils.ErrorJSON(w, errors.New("name is the same"), http.StatusBadRequest)
 		return
+	}
+
+	updatedUser := &models.User{
+		Name:      payload.Name,
+		UpdatedAt: time.Now(),
 	}
 
 	err = m.DB.UpdateUserNameByID(userID, updatedUser)
@@ -249,7 +274,9 @@ func (m *Repository) UpdateUserName(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, updatedUser.Name)
+	response := map[string]string{"name": updatedUser.Name}
+
+	utils.WriteJSON(w, http.StatusOK, response)
 }
 
 func (m *Repository) AllLinks(w http.ResponseWriter, r *http.Request) {
