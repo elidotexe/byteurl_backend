@@ -63,7 +63,11 @@ func ConnectGORM(dsn string) (*DB, error) {
 
 // runMigrations runs the database migrations for the models
 func runMigrations(db *gorm.DB) error {
-	err := db.AutoMigrate(&models.User{}, &models.Link{})
+	err := db.AutoMigrate(
+		&models.User{},
+		&models.Link{},
+		&models.Click{},
+	)
 	if err != nil {
 		fmt.Printf("Cannot migrate user table: %v\n", err)
 		return err

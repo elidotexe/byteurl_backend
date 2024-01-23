@@ -360,7 +360,7 @@ func (m *Repository) CreateLink(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, insertLink)
 }
 
-func (m *Repository) RiderectToOriginalURL(w http.ResponseWriter, r *http.Request) {
+func (m *Repository) RedirectToOriginalURL(w http.ResponseWriter, r *http.Request) {
 	hashURLPattern := regexp.MustCompile(`/([a-zA-Z0-9-]+)$`)
 	matches := hashURLPattern.FindStringSubmatch(r.URL.Path)
 	if len(matches) < 2 {
