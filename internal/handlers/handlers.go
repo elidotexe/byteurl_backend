@@ -389,6 +389,53 @@ func (m *Repository) RedirectToOriginalURL(w http.ResponseWriter, r *http.Reques
 	utils.WriteJSON(w, http.StatusOK, response)
 }
 
+func (m *Repository) CreateRedirectHistory(w http.ResponseWriter, r *http.Request) {
+	hashURLPattern := regexp.MustCompile(`/([a-zA-Z0-9-]+)$`)
+	matches := hashURLPattern.FindStringSubmatch(r.URL.Path)
+	if len(matches) < 2 {
+		utils.ErrorJSON(w, errors.New("invalid short url"), http.StatusBadRequest)
+		return
+	}
+
+	hash := matches[1]
+
+	link, err := m.DB.GetLinkByShortenURL(hash)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("failed to retrieve link"), http.StatusInternalServerError)
+		return
+	}
+
+	var payload struct {
+		Device    string `json:"device"`
+		Browser   string `json:"browser"`
+		IPAddress string `json:"ipAddress"`
+	}
+
+	err = utils.ReadJSON(w, r, &payload)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("invalid request payload"), http.StatusBadRequest)
+		return
+	}
+
+	redirectHistory := models.RedirectHistory{
+		LinkID:    link.ID,
+		Device:    payload.Device,
+		Browser:   payload.Browser,
+		IPAddress: payload.IPAddress,
+		CreatedAt: time.Now(),
+	}
+
+	_, err = m.DB.InsertRedirectHistory(&redirectHistory)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("failed to insert redirect history"), http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]string{"message": "success"}
+
+	utils.WriteJSON(w, http.StatusOK, response)
+}
+
 func (m *Repository) UpdateLink(w http.ResponseWriter, r *http.Request) {
 	pathUserID, pathLinkID := utils.GetIDFromURL(r.URL.Path)
 	if pathUserID == "" {

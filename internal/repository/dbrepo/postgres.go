@@ -151,6 +151,22 @@ func (m *postgresDBRepo) UpdateRedirectDetails(link *models.Link) (*models.Link,
 	return link, nil
 }
 
+func (m *postgresDBRepo) InsertRedirectHistory(redirect *models.RedirectHistory) (*models.RedirectHistory, error) {
+	var maxRedirectID int
+
+	if err := m.DB.Model(&models.RedirectHistory{}).Where("link_id = ?", redirect.LinkID).Select("COALESCE(MAX(id), 0)").Row().Scan(&maxRedirectID); err != nil {
+		return nil, err
+	}
+
+	redirect.ID = maxRedirectID + 1
+
+	if err := m.DB.Create(redirect).Error; err != nil {
+		return nil, err
+	}
+
+	return redirect, nil
+}
+
 func (m *postgresDBRepo) DeleteLink(userID int, linkID int) error {
 	result := m.DB.Where("user_id = ? AND id = ?", userID, linkID).Delete(&models.Link{})
 	if result.Error != nil {

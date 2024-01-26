@@ -7,7 +7,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type Click struct {
+type RedirectHistory struct {
 	ID        int       `json:"id"`
 	LinkID    int       `json:"linkId" gorm:"index" validate:"required"`
 	Device    string    `json:"device"`
@@ -17,15 +17,15 @@ type Click struct {
 }
 
 type Link struct {
-	ID            int       `json:"id"`
-	UserID        int       `json:"userId" gorm:"index" validate:"required"`
-	Title         string    `json:"title"`
-	OriginalURL   string    `json:"originalUrl" validate:"required,url"`
-	ShortenURL    string    `json:"shortenUrl"`
-	Clicks        int       `json:"clicks" sql:"default:0"`
-	ClicksHistory []*Click  `json:"clicksHistory" gorm:"foreignKey:LinkID;references:ID"`
-	CreatedAt     time.Time `json:"createdAt"`
-	UpdatedAt     time.Time `json:"updatedAt"`
+	ID            int                `json:"id"`
+	UserID        int                `json:"userId" gorm:"index" validate:"required"`
+	Title         string             `json:"title"`
+	OriginalURL   string             `json:"originalUrl" validate:"required,url"`
+	ShortenURL    string             `json:"shortenUrl"`
+	Clicks        int                `json:"clicks" sql:"default:0"`
+	ClicksHistory []*RedirectHistory `json:"clicksHistory" gorm:"foreignKey:LinkID;references:ID"`
+	CreatedAt     time.Time          `json:"createdAt"`
+	UpdatedAt     time.Time          `json:"updatedAt"`
 }
 
 type User struct {

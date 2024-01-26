@@ -66,7 +66,7 @@ func runMigrations(db *gorm.DB) error {
 	err := db.AutoMigrate(
 		&models.User{},
 		&models.Link{},
-		&models.Click{},
+		&models.RedirectHistory{},
 	)
 	if err != nil {
 		fmt.Printf("Cannot migrate user table: %v\n", err)
