@@ -176,28 +176,7 @@ func (m *Repository) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u := auth.JWTUser{
-		ID:    newUser.ID,
-		Name:  newUser.Name,
-		Email: newUser.Email,
-	}
-
-	token, err := m.Auth.GenerateTokenPair(&u)
-	if err != nil {
-		utils.ErrorJSON(w, err)
-		return
-	}
-
-	u.Token = token
-
-	refreshCookie := m.Auth.GetRefreshCookie(token)
-	http.SetCookie(w, refreshCookie)
-
-	response := struct {
-		User auth.JWTUser `json:"user"`
-	}{
-		User: u,
-	}
+	response := map[string]string{"message": "success"}
 
 	_ = utils.WriteJSON(w, http.StatusOK, response)
 }
