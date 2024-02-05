@@ -26,6 +26,8 @@ func SetupRoutes(app *config.AppConfig, authInstance *auth.Auth) http.Handler {
 	mux.Get("/redirect/{short}", handlers.Repo.RedirectToOriginalURL)
 	mux.Post("/redirect/{short}", handlers.Repo.CreateRedirectHistory)
 
+	mux.Get("/users/{id}/history", handlers.Repo.LinksWithRedirectHistory)
+
 	mux.Route("/admin", func(mux chi.Router) {
 		mux.Use(authMiddleware.RequireAuth)
 

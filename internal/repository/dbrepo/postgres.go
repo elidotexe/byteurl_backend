@@ -179,3 +179,13 @@ func (m *postgresDBRepo) DeleteLink(userID int, linkID int) error {
 
 	return nil
 }
+
+func (m *postgresDBRepo) GetLinksWithRedirectHistory(userID int) ([]*models.Link, error) {
+	var links []*models.Link
+
+	if err := m.DB.Preload("RedirectHistory").Where("user_id = ?", userID).Find(&links).Error; err != nil {
+		return nil, err
+	}
+
+	return links, nil
+}

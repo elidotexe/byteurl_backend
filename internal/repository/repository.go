@@ -18,4 +18,6 @@ type DatabaseRepo interface {
 	DeleteLink(userID int, linkID int) error
 
 	InsertRedirectHistory(redirect *models.RedirectHistory) (*models.RedirectHistory, error)
+
+	GetLinksWithRedirectHistory(userID int) ([]*models.Link, error)
 }

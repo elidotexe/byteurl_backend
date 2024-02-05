@@ -17,15 +17,15 @@ type RedirectHistory struct {
 }
 
 type Link struct {
-	ID            int                `json:"id"`
-	UserID        int                `json:"userId" gorm:"index" validate:"required"`
-	Title         string             `json:"title"`
-	OriginalURL   string             `json:"originalUrl" validate:"required,url"`
-	ShortenURL    string             `json:"shortenUrl"`
-	Clicks        int                `json:"clicks" sql:"default:0"`
-	ClicksHistory []*RedirectHistory `json:"clicksHistory" gorm:"foreignKey:LinkID;references:ID"`
-	CreatedAt     time.Time          `json:"createdAt"`
-	UpdatedAt     time.Time          `json:"updatedAt"`
+	ID              int                `json:"id"`
+	UserID          int                `json:"userId" gorm:"index" validate:"required"`
+	Title           string             `json:"title"`
+	OriginalURL     string             `json:"originalUrl" validate:"required,url"`
+	ShortenURL      string             `json:"shortenUrl"`
+	Clicks          int                `json:"clicks" sql:"default:0"`
+	RedirectHistory []*RedirectHistory `json:"redirectHistory" gorm:"foreignKey:LinkID;references:ID"`
+	CreatedAt       time.Time          `json:"createdAt"`
+	UpdatedAt       time.Time          `json:"updatedAt"`
 }
 
 type User struct {

@@ -539,3 +539,25 @@ func (m *Repository) DeleteLink(w http.ResponseWriter, r *http.Request) {
 
 	utils.WriteJSON(w, http.StatusOK, "Link successfully deleted!")
 }
+
+func (m *Repository) LinksWithRedirectHistory(w http.ResponseWriter, r *http.Request) {
+	pathUserID, _ := utils.GetIDFromURL(r.URL.Path)
+	if pathUserID == "" {
+		utils.ErrorJSON(w, errors.New("pathUserID is empty"), http.StatusBadRequest)
+		return
+	}
+
+	userID, err := strconv.Atoi(pathUserID)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("invalid user id"), http.StatusBadRequest)
+		return
+	}
+
+	link, err := m.DB.GetLinksWithRedirectHistory(userID)
+	if err != nil {
+		utils.ErrorJSON(w, errors.New("failed to retrieve link"), http.StatusInternalServerError)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, link)
+}
