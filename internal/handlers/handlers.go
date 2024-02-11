@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -388,6 +389,7 @@ func (m *Repository) CreateRedirectHistory(w http.ResponseWriter, r *http.Reques
 		Device    string `json:"device"`
 		Browser   string `json:"browser"`
 		IPAddress string `json:"ipAddress"`
+		Location  string `json:"location"`
 	}
 
 	err = utils.ReadJSON(w, r, &payload)
@@ -396,13 +398,19 @@ func (m *Repository) CreateRedirectHistory(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	fmt.Println(payload.Location)
+	fmt.Println(link.ID)
+
 	redirectHistory := models.RedirectHistory{
 		LinkID:    link.ID,
 		Device:    payload.Device,
 		Browser:   payload.Browser,
 		IPAddress: payload.IPAddress,
+		Location:  payload.Location,
 		CreatedAt: time.Now(),
 	}
+
+	fmt.Println(redirectHistory)
 
 	_, err = m.DB.InsertRedirectHistory(&redirectHistory)
 	if err != nil {

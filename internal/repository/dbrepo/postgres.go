@@ -2,6 +2,7 @@ package dbrepo
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/elidotexe/backend_byteurl/internal/models"
 	"gorm.io/gorm"
@@ -137,9 +138,11 @@ func (m *postgresDBRepo) UpdateLink(link *models.Link) (*models.Link, error) {
 }
 
 func (m *postgresDBRepo) UpdateRedirectDetails(link *models.Link) (*models.Link, error) {
-	result := m.DB.Model(&models.Link{}).Where("user_id = ? AND id = ?", link.UserID, link.ID).Updates(models.Link{
-		Clicks: link.Clicks,
-	})
+	result := m.DB.Model(&models.Link{}).
+		Where("user_id = ? AND id = ?", link.UserID, link.ID).
+		Updates(map[string]interface{}{
+			"clicks": link.Clicks,
+		})
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -148,13 +151,20 @@ func (m *postgresDBRepo) UpdateRedirectDetails(link *models.Link) (*models.Link,
 		return nil, errors.New("link not found")
 	}
 
+	//TODO: Figure out why updatedAt gets updated to the current time
+	fmt.Println("link", link.UpdatedAt)
+
 	return link, nil
 }
 
 func (m *postgresDBRepo) InsertRedirectHistory(redirect *models.RedirectHistory) (*models.RedirectHistory, error) {
 	var maxRedirectID int
 
-	if err := m.DB.Model(&models.RedirectHistory{}).Where("link_id = ?", redirect.LinkID).Select("COALESCE(MAX(id), 0)").Row().Scan(&maxRedirectID); err != nil {
+	if err := m.DB.Model(&models.RedirectHistory{}).
+		Where("link_id = ?", redirect.LinkID).
+		Select("COALESCE(MAX(id), 0)").
+		Row().
+		Scan(&maxRedirectID); err != nil {
 		return nil, err
 	}
 

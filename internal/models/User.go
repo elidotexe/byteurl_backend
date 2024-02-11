@@ -13,6 +13,7 @@ type RedirectHistory struct {
 	Device    string    `json:"device"`
 	Browser   string    `json:"browser"`
 	IPAddress string    `json:"ipAddress"`
+	Location  string    `json:"location"`
 	CreatedAt time.Time `json:"createdAt"`
 }
 
